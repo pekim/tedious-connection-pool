@@ -38,7 +38,7 @@ It is then available to be reused.
 
 ##Class: ConnectionPool
 
-### new ConnectionPool(poolConfig, connectionConfig)
+### new ConnectionPool(poolConfig, connectionConfig, failoverConfig)
 
 * `poolConfig` {Object}
   * `max` {Number} The maximum number of connections there can be in the pool. Default = `10`
@@ -48,6 +48,10 @@ It is then available to be reused.
 * `connectionConfig` {Object} The same configuration that would be used to [create a
   tedious Connection](http://pekim.github.com/tedious/api-connection.html#function_newConnection).
 
+* `failoverConfig` {Object} The same configuration that would be used to [create a
+  tedious Connection](http://pekim.github.com/tedious/api-connection.html#function_newConnection) if the database 
+  at connectionConfig is not available.
+  
 ### connectionPool.requestConnection(callback)
 
 * `callback` {Function} Callback function
