@@ -27,7 +27,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "tedious": ">=0.1.7",
+    "tedious": ">=0.0.7",
     "mocha": ">=1.6.0",
     "async": ">=0.1.22"
   },
