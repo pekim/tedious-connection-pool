@@ -1,8 +1,6 @@
 # tedious-connection-pool
 A simple connection pool for [tedious](http://github.com/pekim/tedious).
 
-    Status: Experimental
-
 ## Example
 The only difference from the regular tedious API is how the connection is obtained.
 Once a Connection object has been acquired, the tedious API can be used with the
@@ -13,27 +11,25 @@ var ConnectionPool = require('tedious-connection-pool');
 
 var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-pool.requestConnection(function (err, connection) {
+pool.acquire(function (err, connection) {
   if(!err) {
     var request = new Request('select 42', function(err, rowCount) {
       assert.strictEqual(rowCount, 1);
     
       // Release the connection back to the pool.
-      connection.close();
+      connection.release();
     });
 
     request.on('row', function(columns) {
       assert.strictEqual(columns[0].value, 42);
     });
 
-    connection.on('connect', function(err) {
-      connection.execSql(request);
-    });
+    connection.execSql(request);
   }
 });
 ```
 
-When the connection is closed it is returned to the pool.
+When the connection is released it is returned to the pool.
 It is then available to be reused.
 
 ##Class: ConnectionPool
@@ -48,8 +44,10 @@ It is then available to be reused.
 * `connectionConfig` {Object} The same configuration that would be used to [create a
   tedious Connection](http://pekim.github.com/tedious/api-connection.html#function_newConnection).
 
-### connectionPool.requestConnection(callback)
+### connectionPool.acquire(callback)
 
 * `callback` {Function} Callback function
   * `error` {Error Object}
   * `connection` {Object} A [Connection](http://pekim.github.com/tedious/api-connection.html)
+
+### connectionPool.release()

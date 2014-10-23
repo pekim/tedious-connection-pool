@@ -1,10 +1,10 @@
 {
   "name": "tedious-connection-pool",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Connection Pool for tedious.",
   "main": "lib/connection-pool.js",
   "dependencies": {
-    "generic-pool": "^2.0.4"
+    "generic-pool": "2.1.x"
   },
   "scripts": {
     "test": "test"
@@ -18,7 +18,9 @@
     "connection",
     "pool"
   ],
-  "author": "Mike D Pilsbury",
+  "author": {
+    "name": "Mike D Pilsbury"
+  },
   "contributors": [
     {
       "name": "e11137",
@@ -31,5 +33,15 @@
     "mocha": ">=1.6.0",
     "async": ">=0.1.22"
   },
-  "licenses": "MIT"
+  "licenses": "MIT",
+  "readme": "# tedious-connection-pool\r\nA simple connection pool for [tedious](http://github.com/pekim/tedious).\r\n\r\n    Status: Experimental\r\n\r\n## Example\r\nThe only difference from the regular tedious API is how the connection is obtained.\r\nOnce a Connection object has been acquired, the tedious API can be used with the\r\nconnection as normal.\r\n\r\n```javascript\r\nvar ConnectionPool = require('tedious-connection-pool');\r\n\r\nvar pool = new ConnectionPool(poolConfig, connectionConfig);\r\n\r\npool.requestConnection(function (err, connection) {\r\n  if(!err) {\r\n    var request = new Request('select 42', function(err, rowCount) {\r\n      assert.strictEqual(rowCount, 1);\r\n    \r\n      // Release the connection back to the pool.\r\n      connection.close();\r\n    });\r\n\r\n    request.on('row', function(columns) {\r\n      assert.strictEqual(columns[0].value, 42);\r\n    });\r\n\r\n    connection.on('connect', function(err) {\r\n      connection.execSql(request);\r\n    });\r\n  }\r\n});\r\n```\r\n\r\nWhen the connection is closed it is returned to the pool.\r\nIt is then available to be reused.\r\n\r\n##Class: ConnectionPool\r\n\r\n### new ConnectionPool(poolConfig, connectionConfig)\r\n\r\n* `poolConfig` {Object}\r\n  * `max` {Number} The maximum number of connections there can be in the pool. Default = `10`\r\n  * `min` {Number} The minimun of connections there can be in the pool. Default = `0`\r\n  * `idleTimeoutMillis` {Number} The Number of milliseconds before closing an unused connection. Default = `30000`\r\n  \r\n* `connectionConfig` {Object} The same configuration that would be used to [create a\r\n  tedious Connection](http://pekim.github.com/tedious/api-connection.html#function_newConnection).\r\n\r\n### connectionPool.requestConnection(callback)\r\n\r\n* `callback` {Function} Callback function\r\n  * `error` {Error Object}\r\n  * `connection` {Object} A [Connection](http://pekim.github.com/tedious/api-connection.html)\r\n",
+  "readmeFilename": "README.md",
+  "gitHead": "22e4053020343706eb9c998e9354263cf2ced759",
+  "bugs": {
+    "url": "https://github.com/pekim/tedious-connection-pool/issues"
+  },
+  "homepage": "https://github.com/pekim/tedious-connection-pool",
+  "_id": "tedious-connection-pool@0.1.3",
+  "_shasum": "1be288bfd2da593b2111ec02efed508f95f1772b",
+  "_from": "..\\tedious-connection-pool"
 }
