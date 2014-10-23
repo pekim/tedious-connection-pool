@@ -1,10 +1,11 @@
 # tedious-connection-pool
 A simple connection pool for [tedious](http://github.com/pekim/tedious).
 
+## Version 1.x
+Version 1.x is not compatible with older versions. It is no longer necessary to wait for the 'connected' event and the close() func behaves exactly like the close() function in tedious (ie. it closes the connection). Connections now have a release() method for releasing control. 
+
 ## Example
-The only difference from the regular tedious API is how the connection is obtained.
-Once a Connection object has been acquired, the tedious API can be used with the
-connection as normal.
+The only difference from the regular tedious API is how the connection is obtained and released. Once a Connection object has been acquired, the tedious API can be used with the connection as normal.
 
 ```javascript
 var ConnectionPool = require('tedious-connection-pool');
