@@ -50,4 +50,7 @@ It is then available to be reused.
   * `error` {Error Object}
   * `connection` {Object} A [Connection](http://pekim.github.com/tedious/api-connection.html)
 
+##Class: PooledConnection
+* An extension of the tedious [connection](http://pekim.github.com/tedious/api-connection.html) object.
+
 ### connectionPool.release()
