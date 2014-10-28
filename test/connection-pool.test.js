@@ -6,7 +6,7 @@ var Request = require('tedious').Request;
 var connectionConfig = {
   userName: 'test',
   password: 'test',
-  server: '192.168.1.212',
+  server: 'dev1',
   // options: {
   //   debug: {
   //     packet: true,
@@ -22,11 +22,11 @@ describe('ConnectionPool', function() {
     var poolConfig = {max: 1, log: false};
 
     it('should connect, and end', function(done) {
-      testPool(poolConfig, poolConfig.max, requestConnectionAndClose, done);
+      testPool(poolConfig, poolConfig.max, acquireAndClose, done);
     });
 
     it('should connect, select, and end', function(done) {
-      testPool(poolConfig, poolConfig.max, requestConnectionSelectAndClose, done);
+      testPool(poolConfig, poolConfig.max, acquireSelectAndClose, done);
     });
   });
 
@@ -35,11 +35,11 @@ describe('ConnectionPool', function() {
     var numberOfConnectionsToUse = poolConfig.max;
 
     it('should connect, and end', function(done) {
-      testPool(poolConfig, numberOfConnectionsToUse, requestConnectionAndClose, done);
+      testPool(poolConfig, numberOfConnectionsToUse, acquireAndClose, done);
     });
 
     it('should connect, select, and end', function(done) {
-      testPool(poolConfig, numberOfConnectionsToUse, requestConnectionSelectAndClose, done);
+      testPool(poolConfig, numberOfConnectionsToUse, acquireSelectAndClose, done);
     });
   });
 
@@ -48,11 +48,11 @@ describe('ConnectionPool', function() {
     var numberOfConnectionsToUse = 20;
 
     it('should connect, and end', function(done) {
-      testPool(poolConfig, numberOfConnectionsToUse, requestConnectionAndClose, done);
+      testPool(poolConfig, numberOfConnectionsToUse, acquireAndClose, done);
     });
 
     it('should connect, select, and end', function(done) {
-      testPool(poolConfig, numberOfConnectionsToUse, requestConnectionSelectAndClose, done);
+      testPool(poolConfig, numberOfConnectionsToUse, acquireSelectAndClose, done);
     });
   });
 });
@@ -78,39 +78,29 @@ function testPool(poolConfig, numberOfConnectionsToUse, useConnectionFunction, d
   });
 }
 
-function requestConnectionAndClose(pool, done) {
-  pool.requestConnection(function (err, connection) {
+function acquireAndClose(pool, done) {
+  pool.acquire(function (err, connection) {
     assert.ok(!err);
 
-    connection.on('connect', function(err) {
-      connection.close();
-    });
-
-    connection.on('end', function(err) {
-      done();
-    });
+    connection.release();
+    done();
   });
 }
 
-function requestConnectionSelectAndClose(pool, done) {
-  pool.requestConnection(function (err, connection) {
+function acquireSelectAndClose(pool, done) {
+  pool.acquire(function (err, connection) {
     assert.ok(!err);
 
     var request = new Request('select 42', function(err, rowCount) {
         assert.strictEqual(rowCount, 1);
-        connection.close();
+        connection.release();
+        done();
     });
 
     request.on('row', function(columns) {
         assert.strictEqual(columns[0].value, 42);
     });
 
-    connection.on('connect', function(err) {
-      connection.execSql(request);
-    });
-
-    connection.on('end', function(err) {
-      done();
-    });
+    connection.execSql(request);
   });
 }
