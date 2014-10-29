@@ -55,7 +55,7 @@ It is then available to be reused.
 ##Class: PooledConnection
 * An extension of the tedious [Connection](http://pekim.github.com/tedious/api-connection.html) object.
 
-### connectionPool.release()
+### PooledConnection.release()
 
 ## Version 0.2.x Breaking Changes
 * To acquire a connection, call on acquire() on a ConnectionPool rather than requestConnection().
