@@ -1,6 +1,6 @@
 {
   "name": "tedious-connection-pool",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Connection Pool for tedious.",
   "main": "lib/connection-pool.js",
   "dependencies": {
@@ -59,8 +59,5 @@
   "bugs": {
     "url": "https://github.com/pekim/tedious-connection-pool/issues"
   },
-  "homepage": "https://github.com/pekim/tedious-connection-pool",
-  "_id": "tedious-connection-pool@0.1.3",
-  "_shasum": "1be288bfd2da593b2111ec02efed508f95f1772b",
-  "_from": "..\\tedious-connection-pool"
+  "homepage": "https://github.com/pekim/tedious-connection-pool"
 }

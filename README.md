@@ -48,10 +48,6 @@ It is then available to be reused.
   * `error` {Error Object}
   * `connection` {Object} A [Connection](http://pekim.github.com/tedious/api-connection.html)
 
-### connectionPool.release(connection)
-
-* `connection` {Object} A [Connection](http://pekim.github.com/tedious/api-connection.html)
-
 ### connectionPool.drain(callback)
 
 * `callback` {Function} Callback function
