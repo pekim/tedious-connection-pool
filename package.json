@@ -1,6 +1,6 @@
 {
   "name": "tedious-connection-pool",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Connection Pool for tedious.",
   "main": "lib/connection-pool.js",
   "dependencies": {
@@ -24,10 +24,6 @@
   },
   "contributors": [
     {
-      "name": "e11137",
-      "email": "rogelio.canedo@gmail.com"
-    },
-    {
       "name": "Ben Page",
       "email": "ben.page@openreign.com"
     }
@@ -45,7 +41,7 @@
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/brentertz/scapegoat/blob/master/LICENSE-MIT"
+      "url": "http://opensource.org/licenses/MIT"
     }
   ],
   "devDependencies": {
