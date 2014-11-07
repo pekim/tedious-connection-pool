@@ -1,106 +1,113 @@
-var assert = require('assert')
-var async = require('async')
+var assert = require('assert');
 var ConnectionPool = require('../lib/connection-pool');
 var Request = require('tedious').Request;
 
 var connectionConfig = {
-  userName: 'test',
-  password: 'test',
-  server: 'dev1',
-  // options: {
-  //   debug: {
-  //     packet: true,
-  //     data: true,
-  //     payload: true,
-  //     token: true
-  //   }
-  // }
+    userName: 'test',
+    password: 'test',
+    server: 'dev1',
+    options: {
+        appName: 'pool-test'
+    }
 };
 
-describe('ConnectionPool', function() {
-  describe('one connection', function() {
-    var poolConfig = {max: 1, log: false};
+describe('ConnectionPool', function () {
+    it('min', function (done) {
+        this.timeout(10000);
 
-    it('should connect, and end', function(done) {
-      testPool(poolConfig, poolConfig.max, acquireAndClose, done);
+        var poolConfig = {min: 2};
+        var pool = new ConnectionPool(poolConfig, connectionConfig);
+
+        function testMin() {
+            if (pool.pending.length > 0) { //wait for connections to be created
+                setTimeout(testMin, 100);
+                return;
+            }
+            assert.equal(pool.free.length, poolConfig.min);
+            done();
+            pool.drain();
+        }
+
+        setTimeout(testMin, 100);
     });
 
-    it('should connect, select, and end', function(done) {
-      testPool(poolConfig, poolConfig.max, acquireSelectAndClose, done);
-    });
-  });
+    it('max', function (done) {
+        this.timeout(10000);
 
-  describe('multiple connections within pool maxSize', function() {
-    var poolConfig = {max: 5, log: false};
-    var numberOfConnectionsToUse = poolConfig.max;
+        var poolConfig = {min: 2, max: 5};
+        var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-    it('should connect, and end', function(done) {
-      testPool(poolConfig, numberOfConnectionsToUse, acquireAndClose, done);
-    });
+        var count = 20;
+        var run = 0;
 
-    it('should connect, select, and end', function(done) {
-      testPool(poolConfig, numberOfConnectionsToUse, acquireSelectAndClose, done);
-    });
-  });
-
-  describe('connections exceed pool maxSize', function() {
-    var poolConfig = {max: 5, log: false};
-    var numberOfConnectionsToUse = 20;
-
-    it('should connect, and end', function(done) {
-      testPool(poolConfig, numberOfConnectionsToUse, acquireAndClose, done);
+        //run more queries than pooled connections
+        runQueries(pool, count, 200, function() {
+            run++;
+            var d = pool.pending.length + pool.free.length + pool.used.length <= poolConfig.max;
+            if (!d)
+                debugger;
+            assert(pool.pending.length + pool.free.length + pool.used.length <= poolConfig.max);
+            if (run === count) {
+                done();
+                pool.drain();
+            }
+        });
     });
 
-    it('should connect, select, and end', function(done) {
-      testPool(poolConfig, numberOfConnectionsToUse, acquireSelectAndClose, done);
+    it('connection error event', function (done) {
+
+        var poolConfig = {min: 2, max: 5};
+        var pool = new ConnectionPool(poolConfig, {});
+        pool.on('error', function(err) {
+            assert(!!err);
+            done();
+            pool.drain();
+        });
     });
-  });
+
+    it('connection error retry', function (done) {
+        this.timeout(10000);
+        var poolConfig = {min: 2, max: 5, retryDelay: 5};
+        var pool = new ConnectionPool(poolConfig, {});
+        pool.on('error', function(err) {
+            assert(!!err);
+            pool.connectionConfig = connectionConfig;
+        });
+
+        function testConnected() {
+            if (pool.pending.length > 0) { //wait for connections to be created
+                setTimeout(testConnected, 100);
+                return;
+            }
+            assert.equal(pool.free.length, poolConfig.min);
+            done();
+            pool.drain();
+        }
+
+        setTimeout(testConnected, 100);
+    });
 });
 
-function testPool(poolConfig, numberOfConnectionsToUse, useConnectionFunction, done) {
-  var pool = new ConnectionPool(poolConfig, connectionConfig);
+function runQueries(pool, count, keepOpen, complete) {
+    var createRequest = function (connection) {
+        var request = new Request('select 42', function (err, rowCount) {
+            assert.strictEqual(rowCount, 1);
+            setTimeout(function() {
+                complete();
+                connection.release();
+            }, keepOpen);
+        });
 
-  function doIt(done) {
-    useConnectionFunction(pool, function() {
-      done();
-    });
-  }
+        request.on('row', function (columns) {
+            assert.strictEqual(columns[0].value, 42);
+        });
 
-  var functions = [];
-  for (var f = 0; f < numberOfConnectionsToUse; f++) {
-    functions.push(doIt);
-  }
+        connection.execSql(request);
+    };
 
-  async.parallel(functions, function() {
-    pool.drain(function() {
-      done();
-    });
-  });
-}
-
-function acquireAndClose(pool, done) {
-  pool.acquire(function (err, connection) {
-    assert.ok(!err);
-
-    connection.release();
-    done();
-  });
-}
-
-function acquireSelectAndClose(pool, done) {
-  pool.acquire(function (err, connection) {
-    assert.ok(!err);
-
-    var request = new Request('select 42', function(err, rowCount) {
-        assert.strictEqual(rowCount, 1);
-        connection.release();
-        done();
-    });
-
-    request.on('row', function(columns) {
-        assert.strictEqual(columns[0].value, 42);
-    });
-
-    connection.execSql(request);
-  });
+    for (var i = 0; i < count; i++) {
+        setTimeout(function() {
+            pool.acquire(createRequest);
+        })
+    }
 }

@@ -3,9 +3,6 @@
   "version": "0.2.4",
   "description": "Connection Pool for tedious.",
   "main": "lib/connection-pool.js",
-  "dependencies": {
-    "generic-pool": "2.1.x"
-  },
   "scripts": {
     "test": "test"
   },
@@ -45,9 +42,8 @@
     }
   ],
   "devDependencies": {
-    "tedious": ">=0.0.7",
-    "mocha": ">=1.6.0",
-    "async": ">=0.1.22"
+    "tedious": ">=1.7.0",
+    "mocha": ">=1.6.0"
   },
   "licenses": "MIT",
   "readmeFilename": "README.md",
