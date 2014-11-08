@@ -18,17 +18,11 @@ describe('ConnectionPool', function () {
         var poolConfig = {min: 2};
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        function testMin() {
-            if (pool.pending.length > 0) { //wait for connections to be created
-                setTimeout(testMin, 100);
-                return;
-            }
-            assert.equal(pool.free.length, poolConfig.min);
+        setTimeout(function() {
+            assert.equal(pool.connections.length, poolConfig.min);
             done();
             pool.drain();
-        }
-
-        setTimeout(testMin, 100);
+        }, 4);
     });
 
     it('max', function (done) {
@@ -43,10 +37,7 @@ describe('ConnectionPool', function () {
         //run more queries than pooled connections
         runQueries(pool, count, 200, function() {
             run++;
-            var d = pool.pending.length + pool.free.length + pool.used.length <= poolConfig.max;
-            if (!d)
-                debugger;
-            assert(pool.pending.length + pool.free.length + pool.used.length <= poolConfig.max);
+            assert(pool.connections.length <= poolConfig.max);
             if (run === count) {
                 done();
                 pool.drain();
@@ -67,7 +58,7 @@ describe('ConnectionPool', function () {
 
     it('connection error retry', function (done) {
         this.timeout(10000);
-        var poolConfig = {min: 2, max: 5, retryDelay: 5};
+        var poolConfig = {min: 1, max: 5, retryDelay: 5};
         var pool = new ConnectionPool(poolConfig, {});
         pool.on('error', function(err) {
             assert(!!err);
@@ -75,16 +66,32 @@ describe('ConnectionPool', function () {
         });
 
         function testConnected() {
-            if (pool.pending.length > 0) { //wait for connections to be created
-                setTimeout(testConnected, 100);
-                return;
+            for (var i = pool.connections.length - 1; i >= 0; i--) {
+                if (pool.connections[i].status === 3/*RETRY*/) {
+                    setTimeout(testConnected, 100);
+                    return;
+                }
             }
-            assert.equal(pool.free.length, poolConfig.min);
+
+            assert.equal(pool.connections.length, poolConfig.min);
             done();
             pool.drain();
         }
 
         setTimeout(testConnected, 100);
+    });
+
+    it('idle timeout', function (done) {
+        this.timeout(10000);
+        var poolConfig = {min: 1, max: 5, idleTimeout: 100};
+        var pool = new ConnectionPool(poolConfig, connectionConfig);
+
+        setTimeout(function() {
+            runQueries(pool, 1, 0, function() {
+                done();
+                pool.drain();
+            });
+        }, 300);
     });
 });
 
