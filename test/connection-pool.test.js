@@ -78,7 +78,7 @@ describe('ConnectionPool', function () {
         for (var i = 0; i < count; i++) {
             setTimeout(function() {
                 pool.acquire(createRequest);
-            })
+            }, 1);
         }
     });
 
