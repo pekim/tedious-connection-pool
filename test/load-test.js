@@ -1,7 +1,7 @@
 var ConnectionPool = require('../lib/connection-pool');
 var Request = require('tedious').Request;
 
-var poolConfig = {min: 20, max: 100, log: true};
+var poolConfig = {min: 20, max: 100};
 var pool = new ConnectionPool(poolConfig, {
     userName: 'test',
     password: 'test',
@@ -15,7 +15,10 @@ var total = clients * connections;
 var c = 0;
 var p = 0;
 
-var createRequest = function (connection) {
+var createRequest = function (err, connection) {
+    if (err)
+        console.err(err);
+
     if (c >= total)
         return;
 

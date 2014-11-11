@@ -1,6 +1,6 @@
 var assert = require('assert');
-var ConnectionPool = require('../lib/connection-pool');
 var Request = require('tedious').Request;
+var ConnectionPool = require('../lib/connection-pool');
 
 var connectionConfig = {
     userName: 'test',
@@ -32,6 +32,7 @@ ALTER LOGIN test DISABLE
 */
 
 describe('ConnectionPool', function () {
+
     it('min', function (done) {
         this.timeout(10000);
 
@@ -54,7 +55,9 @@ describe('ConnectionPool', function () {
         var count = 20;
         var run = 0;
 
-        var createRequest = function (connection) {
+        var createRequest = function (err, connection) {
+            assert(!err);
+
             var request = new Request('select 42', function (err, rowCount) {
                 assert.strictEqual(rowCount, 1);
                 setTimeout(function() {
@@ -82,8 +85,7 @@ describe('ConnectionPool', function () {
         }
     });
 
-    it('connection error event', function (done) {
-
+    it('pool error event', function (done) {
         var poolConfig = {min: 2, max: 5};
         var pool = new ConnectionPool(poolConfig, {});
         pool.on('error', function(err) {
@@ -93,7 +95,7 @@ describe('ConnectionPool', function () {
         });
     });
 
-    it('connection error retry', function (done) {
+    it('connection retry', function (done) {
         this.timeout(10000);
         var poolConfig = {min: 1, max: 5, retryDelay: 5};
         var pool = new ConnectionPool(poolConfig, {});
@@ -119,13 +121,33 @@ describe('ConnectionPool', function () {
         setTimeout(testConnected, 100);
     });
 
+    it('acquire timeout', function (done) {
+        this.timeout(10000);
+
+        var poolConfig = {min: 1, max: 1, acquireTimeout: 2000};
+        var pool = new ConnectionPool(poolConfig, connectionConfig);
+
+        pool.acquire(function(err, connection) {
+            assert(!err);
+            assert(!!connection);
+        });
+
+        pool.acquire(function(err, connection) {
+            assert(!!err);
+            assert(!connection);
+            done();
+        });
+    });
+
     it('idle timeout', function (done) {
         this.timeout(10000);
         var poolConfig = {min: 1, max: 5, idleTimeout: 100};
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
         setTimeout(function() {
-            pool.acquire(function (connection) {
+            pool.acquire(function (err, connection) {
+                assert(!err);
+
                 var request = new Request('select 42', function (err, rowCount) {
                     assert.strictEqual(rowCount, 1);
                     done();
@@ -142,7 +164,7 @@ describe('ConnectionPool', function () {
         }, 300);
     });
 
-    it('lost connection error', function (done) {
+    it('lost connection handling', function (done) {
         this.timeout(10000);
         var poolConfig = {min: 1, max: 5};
         var pool = new ConnectionPool(poolConfig, connectionConfig);
@@ -153,9 +175,10 @@ describe('ConnectionPool', function () {
             pool.drain();
         });
 
-        //This simulates a lost connections by creating a job that kills the current session and then deleting the job.
-        //The user must have the SQLAgentOperatorRole permission on the msdb database and ALTER ANY CONNECTION on master
-        pool.acquire(function (connection) {
+        //This simulates a lost connections by creating a job that kills the current session and then deletesthe job.
+        pool.acquire(function (err, connection) {
+            assert(!err);
+
             var command = 'DECLARE @jobName VARCHAR(68) = \'pool\' + CONVERT(VARCHAR(64),NEWID()), @jobId UNIQUEIDENTIFIER;' +
             'EXECUTE msdb..sp_add_job @jobName, @owner_login_name=\'' + connectionConfig.userName + '\', @job_id=@jobId OUTPUT;' +
             'EXECUTE msdb..sp_add_jobserver @job_id=@jobId;' +
@@ -164,7 +187,7 @@ describe('ConnectionPool', function () {
             'SELECT @cmd = \'kill \' + CONVERT(VARCHAR(10), @@SPID);' +
             'EXECUTE msdb..sp_add_jobstep @job_id=@jobId, @step_name=\'Step1\', @command = @cmd, @database_name = \'' + connectionConfig.options.database + '\', @on_success_action = 3;' +
 
-            'DECLARE @deleteCommand varchar(200);' +
+            'DECLARE @deleteCommand VARCHAR(200);' +
             'SET @deleteCommand = \'execute msdb..sp_delete_job @job_name=\'\'\'+@jobName+\'\'\'\';' +
             'EXECUTE msdb..sp_add_jobstep @job_id=@jobId, @step_name=\'Step2\', @command = @deletecommand;' +
 
