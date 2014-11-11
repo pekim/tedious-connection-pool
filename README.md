@@ -63,7 +63,7 @@ When the connection is released it is returned to the pool and is available to b
   * `max` {Number} The maximum number of connections there can be in the pool. Default = `50`
   * `idleTimeout` {Number} The number of milliseconds before closing an unused connection. Default = `300000`
   * `retryDelay` {Number} The number of milliseconds to wait after a connection fails, before trying again. Default = `5000`
-  * `aquireTimeout` {Number} The number of milliseconds to wait for a connection, before returning an error. Default = `60000`
+  * `acquireTimeout` {Number} The number of milliseconds to wait for a connection, before returning an error. Default = `60000`
   * `log` {Boolean|Function} Set to true to have debug log written to the console or pass a function to receive the log messages. Default = `undefined`
   
 * `connectionConfig` {Object} The same configuration that would be used to [create a
