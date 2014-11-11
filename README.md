@@ -9,14 +9,13 @@ A connection pool for [tedious](http://github.com/pekim/tedious).
 The only difference from the regular tedious API is how the connection is obtained and released. Once a Connection object has been acquired, the tedious API can be used with the connection as normal.
 
 ```javascript
-
 var ConnectionPool = require('tedious-connection-pool');
 var Request = require('tedious').Request;
-var assert = require('assert');
 
 var poolConfig = {
-    min: 5,
-    max: 10
+    min: 2,
+    max: 4,
+    log: true
 };
 
 var connectionConfig = {
@@ -27,22 +26,29 @@ var connectionConfig = {
 
 var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-pool.acquire(function (connection) {
+pool.acquire(function (err, connection) {
+    if (err)
+        console.error(err);
+
     var request = new Request('select 42', function(err, rowCount) {
-        assert.strictEqual(rowCount, 1);
-        
-        connection.release(); // Release the connection back to the pool.
+        if (err)
+            console.error(err);
+
+        console.log('rowCount: ' + rowCount);
+
+        connection.release(); // release the connection back to the pool.
+        pool.drain(); //drain the pool when finished using it
     });
 
     request.on('row', function(columns) {
-        assert.strictEqual(columns[0].value, 42);
+        console.log('value: ' + columns[0].value);
     });
 
     connection.execSql(request);
 });
 
 pool.on('error', function(err) {
-    assert(!!err);
+    console.error(err);
 });
 ```
 
