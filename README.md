@@ -89,9 +89,9 @@ The following method is added to the Tedious [Connection](http://pekim.github.co
 ### Connection.release()
 Release the connect back to the pool to be used again
 
-## Version 0.3.1 Changes
- * Calls Connection.reset() when the connection is released to the pool. This is very unlikely to cause anyone trouble.
- * Added a callback argument to ConnectionPool.drain()
+## Version 0.3.2 Changes
+ * Calls connection.reset() when the connection is released to the pool. This is very unlikely to cause anyone trouble.
+ * Added a callback argument to connectionPool.drain()
 
 ## Version 0.3.0 Changes
  * Removed dependency on the `generic-pool` node module.

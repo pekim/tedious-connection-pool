@@ -1,6 +1,6 @@
 {
   "name": "tedious-connection-pool",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Connection Pool for tedious.",
   "main": "lib/connection-pool.js",
   "scripts": {
