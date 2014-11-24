@@ -1,6 +1,6 @@
 {
   "name": "tedious-connection-pool",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Connection Pool for tedious.",
   "main": "lib/connection-pool.js",
   "scripts": {
@@ -47,7 +47,6 @@
   },
   "licenses": "MIT",
   "readmeFilename": "README.md",
-  "gitHead": "22e4053020343706eb9c998e9354263cf2ced759",
   "bugs": {
     "url": "https://github.com/pekim/tedious-connection-pool/issues"
   },

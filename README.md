@@ -76,8 +76,9 @@ Acquire a Tedious Connection object from the pool.
   * `err` {Object} An Error object is an error occurred trying to acquire a connection, otherwise null.
   * `connection` {Object} A [Connection](http://pekim.github.com/tedious/api-connection.html)
 
-### connectionPool.drain()
+### connectionPool.drain(callback)
 Close all pooled connections and stop making new ones. The pool should be discarded after it has been drained.
+ * `callback()` {Function} Callback function
 
 ### connectionPool.error {event}
 The 'error' event is emitted when a connection fails to connect to the SQL Server.
@@ -88,7 +89,11 @@ The following method is added to the Tedious [Connection](http://pekim.github.co
 ### Connection.release()
 Release the connect back to the pool to be used again
 
-## Version 0.3.x Changes
+## Version 0.3.1 Changes
+ * Calls Connection.Reset() when the connection is released to the pool. This is very unlikely to cause anyone trouble.
+ * Added a callback argument to ConnectionPool.drain()
+
+## Version 0.3.0 Changes
  * Removed dependency on the `generic-pool` node module.
  * Added `poolConfig` options `retryDelay`
  * Added `poolConfig` options `aquireTimeout` **(Possibly Breaking)**
@@ -96,9 +101,9 @@ Release the connect back to the pool to be used again
  * `idleTimeoutMillis` renamed to `idleTimeout` **(Possibly Breaking)**
  * The `ConnectionPool` `'error'` event added
  * The behavior of the err parameter of the callback passed to `acquire()` has changed. It only returns errors related to acquiring a connection not Tedious Connection errors. Connection errors can happen anytime the pool is being filled and could go unnoticed if only passed the the callback. Subscribe to the `'error'` event on the pool to be notified of all connection errors. **(Possibly Breaking)**
- * `PooledConnection` object removed. 
+ * `PooledConnection` object removed.
 
 ## Version 0.2.x Breaking Changes
 * To acquire a connection, call on `acquire()` on a `ConnectionPool` rather than `requestConnection()`.
 * After acquiring a `PooledConnection`, do not wait for the `'connected'` event. The connection is received connected.
-* Call `release()` on a `PooledConnection` to release the it back to the pool. `close()` permenantly closes the connection (as `close()` behaves in in tedious).
+* Call `release()` on a `PooledConnection` to release the it back to the pool. `close()` permanently closes the connection (as `close()` behaves in in tedious).

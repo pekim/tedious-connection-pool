@@ -41,8 +41,7 @@ describe('ConnectionPool', function () {
 
         setTimeout(function() {
             assert.equal(pool.connections.length, poolConfig.min);
-            done();
-            pool.drain();
+            pool.drain(done);
         }, 4);
     });
 
@@ -64,8 +63,8 @@ describe('ConnectionPool', function () {
                     run++;
                     assert(pool.connections.length <= poolConfig.max);
                     if (run === count) {
-                        done();
-                        pool.drain();
+                        pool.drain(done);
+                        return;
                     }
                     connection.release();
                 }, 200);
@@ -90,8 +89,7 @@ describe('ConnectionPool', function () {
         var pool = new ConnectionPool(poolConfig, {});
         pool.on('error', function(err) {
             assert(!!err);
-            done();
-            pool.drain();
+            pool.drain(done);
         });
     });
 
@@ -114,8 +112,7 @@ describe('ConnectionPool', function () {
             }
 
             assert.equal(pool.connections.length, poolConfig.min);
-            done();
-            pool.drain();
+            pool.drain(done);
         }
 
         setTimeout(testConnected, 100);
@@ -150,8 +147,7 @@ describe('ConnectionPool', function () {
 
                 var request = new Request('select 42', function (err, rowCount) {
                     assert.strictEqual(rowCount, 1);
-                    done();
-                    pool.drain();
+                    pool.drain(done);
                 });
 
                 request.on('row', function (columns) {
@@ -171,8 +167,7 @@ describe('ConnectionPool', function () {
 
         pool.on('error', function(err) {
             assert(err && err.name === 'ConnectionError');
-            done();
-            pool.drain();
+            pool.drain(done);
         });
 
         //This simulates a lost connections by creating a job that kills the current session and then deletesthe job.
@@ -192,7 +187,7 @@ describe('ConnectionPool', function () {
             'EXECUTE msdb..sp_add_jobstep @job_id=@jobId, @step_name=\'Step2\', @command = @deletecommand;' +
 
             'EXECUTE msdb..sp_start_job @job_id=@jobId;' +
-            'WAITFOR DELAY \'00:00:10\';' +
+            'WAITFOR DELAY \'01:00:00\';' +
             'SELECT 42';
 
             var request = new Request(command, function (err, rowCount) {
@@ -204,6 +199,44 @@ describe('ConnectionPool', function () {
             });
 
             connection.execSql(request);
+        });
+    });
+
+    it('release(), reset()', function (done) {
+        this.timeout(10000);
+
+        var poolConfig = {max: 1};
+        var pool = new ConnectionPool(poolConfig, connectionConfig);
+
+
+        var createRequest = function(query, value, callback) {
+            var request = new Request(query, function (err, rowCount) {
+                assert.strictEqual(rowCount, 1);
+                callback();
+            });
+
+            request.on('row', function (columns) {
+                assert.strictEqual(columns[0].value, value);
+            });
+
+            return request;
+        };
+
+        pool.acquire(function(err, conn) {
+            assert(!err);
+
+            conn.execSql(createRequest('SELECT 42', 42, function () {
+                pool.release(conn); //release the connect
+
+                pool.acquire(function (err, conn) { //re-acquire the connection
+                    assert(!err);
+
+                    conn.execSql(createRequest('SELECT 42', 42, function () {
+
+                        pool.drain(done);
+                    }));
+                });
+            }));
         });
     });
 });
