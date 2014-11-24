@@ -90,7 +90,7 @@ The following method is added to the Tedious [Connection](http://pekim.github.co
 Release the connect back to the pool to be used again
 
 ## Version 0.3.1 Changes
- * Calls Connection.Reset() when the connection is released to the pool. This is very unlikely to cause anyone trouble.
+ * Calls Connection.reset() when the connection is released to the pool. This is very unlikely to cause anyone trouble.
  * Added a callback argument to ConnectionPool.drain()
 
 ## Version 0.3.0 Changes
