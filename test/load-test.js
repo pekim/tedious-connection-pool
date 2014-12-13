@@ -17,7 +17,7 @@ var p = 0;
 
 var createRequest = function (err, connection) {
     if (err)
-        console.err(err);
+        console.error(err);
 
     if (c >= total)
         return;

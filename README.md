@@ -4,9 +4,13 @@ A connection pool for [tedious](http://github.com/pekim/tedious).
 ## Installation
 
     npm install tedious-connection-pool
+    
+##Description
+The only difference from the regular tedious API is how the connection is obtained and released. Rather than creating a connection and then closing it when finished, acquire a connection from the pool and release it when finished. Releasing resets the connection and makes in available for another use.
+
+Once the Tedious Connection object has been acquired, the tedious API can be used with the connection as normal.
 
 ## Example
-The only difference from the regular tedious API is how the connection is obtained and released. Once a Connection object has been acquired, the tedious API can be used with the connection as normal.
 
 ```javascript
 var ConnectionPool = require('tedious-connection-pool');
@@ -24,20 +28,23 @@ var connectionConfig = {
     server: 'localhost'
 };
 
+//create the pool
 var pool = new ConnectionPool(poolConfig, connectionConfig);
 
+//acquire a connection
 pool.acquire(function (err, connection) {
     if (err)
         console.error(err);
 
+	//use the connection as normal
     var request = new Request('select 42', function(err, rowCount) {
         if (err)
             console.error(err);
 
         console.log('rowCount: ' + rowCount);
 
-        connection.release(); // release the connection back to the pool.
-        pool.drain(); //drain the pool when finished using it
+		//release the connection back to the pool when finished
+        connection.release();
     });
 
     request.on('row', function(columns) {
@@ -52,7 +59,11 @@ pool.on('error', function(err) {
 });
 ```
 
-When the connection is released it is returned to the pool and is available to be reused.
+When you are finished with the pool, you can drain it (close all connections).
+```javascript
+pool.drain(); //drain the pool when finished using it
+```
+
 
 ##Class: ConnectionPool
 
@@ -88,6 +99,9 @@ The following method is added to the Tedious [Connection](http://pekim.github.co
 
 ### Connection.release()
 Release the connect back to the pool to be used again
+
+## Version 0.3.3 Changes
+* Ignore calls to connection.release() on a connection that has been closed or not part of the connection pool.
 
 ## Version 0.3.2 Changes
  * Calls connection.reset() when the connection is released to the pool. This is very unlikely to cause anyone trouble.
