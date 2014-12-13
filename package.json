@@ -35,17 +35,13 @@
       "email": "ben.page@openreign.com"
     }
   ],
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://opensource.org/licenses/MIT"
-    }
-  ],
+  "licenses": "MIT",
+  "dependencies": {
+    "tedious": "^1.8.0"
+  },
   "devDependencies": {
-    "tedious": ">=1.8.0",
     "mocha": ">=1.6.0"
   },
-  "licenses": "MIT",
   "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/pekim/tedious-connection-pool/issues"
