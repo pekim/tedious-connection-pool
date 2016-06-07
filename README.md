@@ -87,16 +87,30 @@ pool.drain();
 ### connectionPool.acquire(callback)
 Acquire a Tedious Connection object from the pool.
 
- * `callback(err, connection)` {Function} Callback function
-  * `err` {Object} An Error object is an error occurred trying to acquire a connection, otherwise null.
+* `callback(err, connection)` {Function} Callback function
+  * `err` {Object} The Error that occurred while trying to acquire a connection, otherwise null.
   * `connection` {Object} A [Connection](http://pekim.github.com/tedious/api-connection.html)
 
 ### connectionPool.drain(callback)
 Close all pooled connections and stop making new ones. The pool should be discarded after it has been drained.
- * `callback()` {Function} Callback function
 
-### connectionPool.error {event}
+* `callback()` {Function} Callback function
+
+### connectionPool 'error' {event}
 The 'error' event is emitted when a connection fails to connect to the SQL Server.
+
+* `err` {Object} The Error that occurred while trying to connect to the SQL Server.
+
+### connectionPool 'new-connection' {event}
+The 'new-connection' event is emitted when a new connection was just created. No other event-handlers are registered yet and it is not yet put into the connection pool at this point.
+
+* `new_con` {Object} The newly created [Connection](http://pekim.github.com/tedious/api-connection.html)
+
+### connectionPool 'new-connection-pooled' {event}
+The 'new-connection-pooled' event is emitted after the 'new-connection' event. At this point the internal event-handlers are already registered on the connection and it is already put into the connection pool.
+
+* `new_con` {Object} The newly pooled [Connection](http://pekim.github.com/tedious/api-connection.html)
+
 
 ## Class: Connection
 The following method is added to the Tedious [Connection](http://pekim.github.com/tedious/api-connection.html) object.
