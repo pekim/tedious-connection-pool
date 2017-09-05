@@ -19,6 +19,7 @@ Once the Tedious Connection object has been acquired, the tedious API can be use
 
 ```javascript
 var ConnectionPool = require('tedious-connection-pool');
+ConnectionPool.overrideTedious(require('tedious'));
 var Request = require('tedious').Request;
 
 var poolConfig = {
@@ -75,6 +76,9 @@ pool.drain();
 
 
 ## Class: ConnectionPool
+
+### ConnectionPool.overrideTedious(tedious)
+Create connections using specified tedious module rather than ConnectionPool's default version of tedious.
 
 ### new ConnectionPool(poolConfig, connectionConfig)
 
