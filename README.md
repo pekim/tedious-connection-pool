@@ -1,5 +1,5 @@
 # tedious-connection-pool
-[![npm version](1.0.6)
+![npm version](1.0.6)
 
 
 A connection pool for [tedious](http://github.com/tediousjs/tedious).
