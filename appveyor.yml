@@ -18,11 +18,14 @@ install:
   - ps: Install-Product node $env:nodejs_version
   - cmd: npm install
 
+services:
+  - mssql2017
+
 cache: node_modules
 build: off
 
 before_test:
-  - ps: Start-Process enable-sql-server-tcp-ip.ps1
+  - npm prune
 
 test_script:
   - cmd: npm test
