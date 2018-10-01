@@ -1,6 +1,6 @@
 {
   "name": "tedious-connection-pool",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Connection Pool for tedious.",
   "main": "lib/connection-pool.js",
   "scripts": {
@@ -31,7 +31,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "tedious": "^1.14.0"
+    "tedious": "^2.1.1"
   },
   "devDependencies": {
     "mocha": "^3.0.2",

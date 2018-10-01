@@ -7,7 +7,7 @@ var Connection = require('tedious').Connection;
 var connectionConfig, timeout;
 
 if (process.env.APPVEYOR) {
-    timeout = 30000;
+    timeout = 60000;
     connectionConfig = {
         server: 'localhost',
         userName: 'sa',
@@ -59,7 +59,7 @@ describe('Name Collision', function () {
     it('release', function () {
         assert(!Connection.prototype.release);
 
-        var con = new Connection({});
+        var con = new Connection(connectionConfig);
         assert(!con.release);
         con.close();
     });
@@ -67,7 +67,7 @@ describe('Name Collision', function () {
     it('pool', function () {
         assert(!Connection.prototype.pool);
 
-        var con = new Connection({});
+        var con = new Connection(connectionConfig);
         assert(!con.pool);
         con.close();
     });
@@ -78,10 +78,10 @@ describe('ConnectionPool', function () {
     it('min', function (done) {
         this.timeout(timeout);
 
-        var poolConfig = {min: 2};
+        var poolConfig = { min: 2 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        setTimeout(function() {
+        setTimeout(function () {
             assert.equal(pool.connections.length, poolConfig.min);
             pool.drain(done);
         }, 4);
@@ -90,15 +90,15 @@ describe('ConnectionPool', function () {
     it('min=0', function (done) {
         this.timeout(timeout);
 
-        var poolConfig = {min: 0, idleTimeout: 10};
+        var poolConfig = { min: 0, idleTimeout: 10 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        setTimeout(function() {
+        setTimeout(function () {
             assert.equal(pool.connections.length, 0);
         }, 4);
 
-        setTimeout(function() {
-            pool.acquire(function(err, connection) {
+        setTimeout(function () {
+            pool.acquire(function (err, connection) {
                 assert(!err);
 
                 var request = new Request('select 42', function (err, rowCount) {
@@ -122,7 +122,7 @@ describe('ConnectionPool', function () {
     it('max', function (done) {
         this.timeout(timeout);
 
-        var poolConfig = {min: 2, max: 5};
+        var poolConfig = { min: 2, max: 5 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
         var count = 20;
@@ -133,7 +133,7 @@ describe('ConnectionPool', function () {
 
             var request = new Request('select 42', function (err, rowCount) {
                 assert.strictEqual(rowCount, 1);
-                setTimeout(function() {
+                setTimeout(function () {
                     run++;
                     assert(pool.connections.length <= poolConfig.max);
                     if (run === count) {
@@ -152,7 +152,7 @@ describe('ConnectionPool', function () {
         };
 
         for (var i = 0; i < count; i++) {
-            setTimeout(function() {
+            setTimeout(function () {
                 pool.acquire(createRequest);
             }, 1);
         }
@@ -161,15 +161,15 @@ describe('ConnectionPool', function () {
     it('min<=max, min specified > max specified', function (done) {
         this.timeout(timeout);
 
-        var poolConfig = { min: 5, max: 1, idleTimeout: 10};
+        var poolConfig = { min: 5, max: 1, idleTimeout: 10 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        setTimeout(function() {
+        setTimeout(function () {
             assert.equal(pool.connections.length, 1);
         }, 4);
 
-        setTimeout(function() {
-            pool.acquire(function(err, connection) {
+        setTimeout(function () {
+            pool.acquire(function (err, connection) {
                 assert(!err);
 
                 var request = new Request('select 42', function (err, rowCount) {
@@ -193,15 +193,15 @@ describe('ConnectionPool', function () {
     it('min<=max, no min specified', function (done) {
         this.timeout(timeout);
 
-        var poolConfig = {max: 1, idleTimeout: 10};
+        var poolConfig = { max: 1, idleTimeout: 10 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        setTimeout(function() {
+        setTimeout(function () {
             assert.equal(pool.connections.length, 1);
         }, 4);
 
-        setTimeout(function() {
-            pool.acquire(function(err, connection) {
+        setTimeout(function () {
+            pool.acquire(function (err, connection) {
                 assert(!err);
 
                 var request = new Request('select 42', function (err, rowCount) {
@@ -224,12 +224,13 @@ describe('ConnectionPool', function () {
 
     it('pool error event', function (done) {
         this.timeout(timeout);
-        var poolConfig = {min: 3};
-        var pool = new ConnectionPool(poolConfig, {});
+        var poolConfig = { max: 1, acquireTimeout: 1 };
+        var pool = new ConnectionPool(poolConfig, connectionConfig);
+        pool.acquire(function () {
+            pool.emit('error', true);
+        });
 
-        pool.acquire(function() { });
-
-        pool.on('error', function(err) {
+        pool.once('error', function (err) {
             assert(!!err);
             pool.drain(done);
         });
@@ -237,10 +238,10 @@ describe('ConnectionPool', function () {
 
     it('connection retry', function (done) {
         this.timeout(timeout);
-        var poolConfig = {min: 1, max: 5, retryDelay: 5};
-        var pool = new ConnectionPool(poolConfig, {});
+        var poolConfig = { min: 1, max: 5, retryDelay: 5 };
+        var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        pool.on('error', function(err) {
+        pool.on('error', function (err) {
             assert(!!err);
             pool.connectionConfig = connectionConfig;
         });
@@ -263,15 +264,15 @@ describe('ConnectionPool', function () {
     it('acquire timeout', function (done) {
         this.timeout(timeout);
 
-        var poolConfig = {min: 1, max: 1, acquireTimeout: 2000};
+        var poolConfig = { min: 1, max: 1, acquireTimeout: 2000 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        pool.acquire(function(err, connection) {
+        pool.acquire(function (err, connection) {
             assert(!err);
             assert(!!connection);
         });
 
-        pool.acquire(function(err, connection) {
+        pool.acquire(function (err, connection) {
             assert(!!err);
             assert(!connection);
             done();
@@ -280,10 +281,10 @@ describe('ConnectionPool', function () {
 
     it('idle timeout', function (done) {
         this.timeout(timeout);
-        var poolConfig = {min: 1, max: 5, idleTimeout: 100};
+        var poolConfig = { min: 1, max: 5, idleTimeout: 100 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        setTimeout(function() {
+        setTimeout(function () {
             pool.acquire(function (err, connection) {
                 assert(!err);
 
@@ -304,11 +305,11 @@ describe('ConnectionPool', function () {
 
     it('connection error handling', function (done) {
         this.timeout(timeout);
-        var poolConfig = {min: 1, max: 5};
+        var poolConfig = { min: 1, max: 5 };
 
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        pool.on('error', function(err) {
+        pool.on('error', function (err) {
             assert(err && err.name === 'ConnectionError');
         });
 
@@ -317,20 +318,20 @@ describe('ConnectionPool', function () {
             assert(!err);
 
             var command = 'DECLARE @jobName VARCHAR(68) = \'pool\' + CONVERT(VARCHAR(64),NEWID()), @jobId UNIQUEIDENTIFIER;' +
-            'EXECUTE msdb..sp_add_job @jobName, @owner_login_name=\'' + connectionConfig.userName + '\', @job_id=@jobId OUTPUT;' +
-            'EXECUTE msdb..sp_add_jobserver @job_id=@jobId;' +
+                'EXECUTE msdb..sp_add_job @jobName, @owner_login_name=\'' + connectionConfig.userName + '\', @job_id=@jobId OUTPUT;' +
+                'EXECUTE msdb..sp_add_jobserver @job_id=@jobId;' +
 
-            'DECLARE @cmd VARCHAR(50);' +
-            'SELECT @cmd = \'kill \' + CONVERT(VARCHAR(10), @@SPID);' +
-            'EXECUTE msdb..sp_add_jobstep @job_id=@jobId, @step_name=\'Step1\', @command = @cmd, @database_name = \'' + connectionConfig.options.database + '\', @on_success_action = 3;' +
+                'DECLARE @cmd VARCHAR(50);' +
+                'SELECT @cmd = \'kill \' + CONVERT(VARCHAR(10), @@SPID);' +
+                'EXECUTE msdb..sp_add_jobstep @job_id=@jobId, @step_name=\'Step1\', @command = @cmd, @database_name = \'' + connectionConfig.options.database + '\', @on_success_action = 3;' +
 
-            'DECLARE @deleteCommand VARCHAR(200);' +
-            'SET @deleteCommand = \'execute msdb..sp_delete_job @job_name=\'\'\'+@jobName+\'\'\'\';' +
-            'EXECUTE msdb..sp_add_jobstep @job_id=@jobId, @step_name=\'Step2\', @command = @deletecommand;' +
+                'DECLARE @deleteCommand VARCHAR(200);' +
+                'SET @deleteCommand = \'execute msdb..sp_delete_job @job_name=\'\'\'+@jobName+\'\'\'\';' +
+                'EXECUTE msdb..sp_add_jobstep @job_id=@jobId, @step_name=\'Step2\', @command = @deletecommand;' +
 
-            'EXECUTE msdb..sp_start_job @job_id=@jobId;' +
-            'WAITFOR DELAY \'01:00:00\';' +
-            'SELECT 42';
+                'EXECUTE msdb..sp_start_job @job_id=@jobId;' +
+                'WAITFOR DELAY \'01:00:00\';' +
+                'SELECT 42';
 
             var request = new Request(command, function (err, rowCount) {
                 assert(err);
@@ -348,10 +349,10 @@ describe('ConnectionPool', function () {
     it('release(), reset()', function (done) {
         this.timeout(timeout);
 
-        var poolConfig = {max: 1};
+        var poolConfig = { max: 1 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        var createRequest = function(query, value, callback) {
+        var createRequest = function (query, value, callback) {
             var request = new Request(query, function (err, rowCount) {
                 assert.strictEqual(rowCount, 1);
                 callback();
@@ -364,7 +365,7 @@ describe('ConnectionPool', function () {
             return request;
         };
 
-        pool.acquire(function(err, conn) {
+        pool.acquire(function (err, conn) {
             assert(!err);
 
             conn.execSql(createRequest('SELECT 42', 42, function () {
@@ -385,12 +386,12 @@ describe('ConnectionPool', function () {
     it('drain', function (done) {
         this.timeout(timeout);
 
-        var poolConfig = {min: 3};
+        var poolConfig = { min: 3 };
         var pool = new ConnectionPool(poolConfig, connectionConfig);
 
-        pool.acquire(function() { });
+        pool.acquire(function () { });
 
-        setTimeout(function() {
+        setTimeout(function () {
             assert.equal(pool.connections.length, poolConfig.min);
             pool.drain(done);
         }, 4);
@@ -400,7 +401,7 @@ describe('ConnectionPool', function () {
 if (!process.env.APPVEYOR) {
     describe('Load Test', function () {
         var statistics = require('simple-statistics');
-        
+
         it('Memory Leak Detection - Connection Error', function (done) {
             this.timeout(60000);
             if (!global.gc)
@@ -410,23 +411,23 @@ if (!process.env.APPVEYOR) {
             var groupCount = 20;
             var poolSize = 1000;
             var max = poolSize * groupCount;
-            
-            var pool = new ConnectionPool({max: poolSize, min: poolSize, retryDelay: 1}, {
+
+            var pool = new ConnectionPool({ max: poolSize, min: poolSize, retryDelay: 1 }, {
                 userName: 'testLogin',
                 password: 'wrongPassword',
                 server: 'localhost'
             });
-            
+
             pool.on('error', function () {
                 if ((++count % poolSize) !== 0)
                     return;
-                
+
                 global.gc();
-                
+
                 var heapUsedKB = Math.round(process.memoryUsage().heapUsed / 1024);
                 mem.push([count, heapUsedKB]);
                 // console.log(count + ': ' + heapUsedKB + 'KB');
-                
+
                 if (count === max) {
                     var data = statistics.linearRegression(mem);
                     //console.log(data.m);
@@ -434,59 +435,59 @@ if (!process.env.APPVEYOR) {
                         done(new Error('Memory leak detected.'));
                     else
                         done();
-                    
+
                     pool.drain();
                 }
             });
         });
-        
+
         it('Memory Leak Detection - acquire() and Request', function (done) {
             this.timeout(60000);
             if (!global.gc)
                 throw new Error('must run nodejs with --expose-gc');
-            
-            var poolConfig = {min: 67, max: 123};
+
+            var poolConfig = { min: 67, max: 123 };
             var pool = new ConnectionPool(poolConfig, {
                 userName: 'test',
                 password: 'test',
                 server: 'dev1'
             });
-            
+
             var clients = 1000;
             var connections = 100;
             var max = clients * connections;
             var mem = [];
-            
+
             for (var i = 0; i < clients; i++)
                 createClient();
-            
+
             var count = 0;
-            
+
             function end(err) {
                 done(err);
                 pool.drain();
             }
-            
+
             function createClient() {
                 var clientCount = 0;
-                
+
                 function createRequest() {
                     pool.acquire(function (err, connection) {
                         if (err)
                             return end(err);
-                        
+
                         var request = new Request('select 42', function (err) {
                             if (err)
                                 return end(err);
-                            
+
                             connection.release();
-                            
+
                             if (++clientCount < connections)
                                 createRequest();
-                            
+
                             if ((++count % 1000) === 0) {
                                 global.gc();
-                                
+
                                 if (count === max) {
                                     var data = statistics.linearRegression(mem);
                                     //console.log(data.m);
@@ -501,11 +502,11 @@ if (!process.env.APPVEYOR) {
                                 }
                             }
                         });
-                        
+
                         connection.execSql(request);
                     });
                 }
-                
+
                 createRequest();
             }
         });
