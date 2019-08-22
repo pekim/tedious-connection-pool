@@ -79,7 +79,7 @@ pool.drain();
 ### new ConnectionPool(poolConfig, connectionConfig)
 
 * `poolConfig` {Object} the pool configuration object
-  * `min` {Number} The minimun of connections there can be in the pool. Default = `10`
+  * `min` {Number} The minimum of connections there can be in the pool. Default = `10`
   * `max` {Number} The maximum number of connections there can be in the pool. Default = `50`
   * `idleTimeout` {Number} The number of milliseconds before closing an unused connection. Default = `300000`
   * `retryDelay` {Number} The number of milliseconds to wait after a connection fails, before trying again. Default = `5000`
