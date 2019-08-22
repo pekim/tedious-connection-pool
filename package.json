@@ -1,40 +1,45 @@
 {
-	"name": "tedious-connection-pool",
-	"version": "1.0.0",
-	"description": "Connection Pool for tedious.",
-	"main": "lib/connection-pool.js",
-	"scripts": {
-		"test": "node_modules/.bin/mocha --expose-gc test/test.js"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://bitbucket.org/irefact/tedious-connection-pool.git"
-	},
-	"keywords": [
-		"tedious",
-		"connection",
-		"pool"
-	],
-	"author": {
-		"name": "Ben Page",
-		"email": "ben.page@openreign.com"
-	},
-	"contributors": [
-		{
-			"name": "Ben Page",
-			"email": "ben.page@openreign.com"
-		},
-		{
-			"name": "Mike D Pilsbury",
-			"email": "mike.pilsbury@gmail.com"
-		}
-	],
-	"license": "MIT",
-	"peerDependencies": {
+  "name": "tedious-connection-pool",
+  "version": "1.0.6",
+  "description": "Connection Pool for tedious.",
+  "main": "lib/connection-pool.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha --expose-gc test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tediousjs/tedious-connection-pool.git"
+  },
+  "keywords": [
+    "tedious",
+    "connection",
+    "pool"
+  ],
+  "author": {
+    "name": "Ben Page",
+    "email": "ben.page@openreign.com"
+  },
+  "contributors": [
+    {
+      "name": "Ben Page",
+      "email": "ben.page@openreign.com"
+    },
+    {
+      "name": "Mike D Pilsbury",
+      "email": "mike.pilsbury@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "peerDependencies": {
 		"tedious": ">= 1.0.0"
-	},
-	"devDependencies": {
-		"mocha": "^3.0.2",
-		"simple-statistics": "^2.1.0"
-	}
+  },
+  "devDependencies": {
+    "mocha": "^3.0.2",
+    "simple-statistics": "^2.1.0"
+  },
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/tediousjs/tedious-connection-pool/issues"
+  },
+  "homepage": "https://github.com/tediousjs/tedious-connection-pool"
 }
