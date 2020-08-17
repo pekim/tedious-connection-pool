@@ -10,8 +10,6 @@ if (process.env.APPVEYOR) {
     timeout = 30000;
     connectionConfig = {
         server: 'localhost',
-        userName: 'sa',
-        password: 'Password12!',
         options: {
             appName: 'pool-test',
             database: 'master',
@@ -19,17 +17,29 @@ if (process.env.APPVEYOR) {
             cryptoCredentialsDetails: {
                 ciphers: 'RC4-MD5'
             }
+        },
+		authentication: {
+            type: 'default',
+            options: {
+                userName: 'sa',
+                password: 'Password12!'
+            }
         }
     };
 } else {
     timeout = 10000;
     connectionConfig = {
-        userName: 'test',
-        password: 'test',
         server: 'dev1',
         options: {
             appName: 'pool-test',
             database: 'test'
+        },
+		authentication: {
+            type: 'default',
+            options: {
+                userName: 'test',
+                password: 'test!'
+            }
         }
     };
 }
