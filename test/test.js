@@ -12,13 +12,14 @@ if (process.env.APPVEYOR) {
         server: 'localhost',
         options: {
             appName: 'pool-test',
+	    enableArithAbort: false,
             database: 'master',
             requestTimeout: 25000,
             cryptoCredentialsDetails: {
                 ciphers: 'RC4-MD5'
             }
         },
-		authentication: {
+	authentication: {
             type: 'default',
             options: {
                 userName: 'sa',
@@ -32,6 +33,7 @@ if (process.env.APPVEYOR) {
         server: 'dev1',
         options: {
             appName: 'pool-test',
+	    enableArithAbort: false,
             database: 'test'
         },
 		authentication: {
